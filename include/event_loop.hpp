@@ -27,6 +27,7 @@ private:
     std::vector<handle> pending_; // coroutines to resume
     std::mutex m_; // protects pending_
     bool stop_ = false;
+    void add_fd_helper(int fd, uint32_t events); // register `fd` to be observed for `events`;
 };
 
 struct read_ready_t {
