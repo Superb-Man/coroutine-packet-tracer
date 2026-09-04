@@ -28,7 +28,7 @@ io_context::~io_context() {
 }
 
 void io_context::stop() {
-    stop_ = true;
+    stop_.store(true);
     post(std::noop_coroutine()); // wake the loop so it notices stop_ and exits run()
 }
 
@@ -65,7 +65,7 @@ void io_context::post(handle h) {
 void io_context::run() {
     epoll_event evs[64];
 
-    while(!stop_) {
+    while(!stop_.load()) {
         std::vector<handle> v;
         {
             std::lock_guard<std::mutex> lk(m_);
@@ -112,7 +112,7 @@ void io_context::run() {
 }
 
 bool io_context::stopped() const {
-    return stop_;
+    return stop_.load();
 }
 
 void io_context::add_fd_helper(int fd, uint32_t events) {
@@ -121,4 +121,34 @@ void io_context::add_fd_helper(int fd, uint32_t events) {
     ev.events = events;
     ev.data.fd = fd;
     epoll_ctl(epfd_, EPOLL_CTL_ADD, fd, &ev);
+}
+
+bool read_ready_t::await_ready() const noexcept {
+    return false;
+}
+
+bool read_ready_t::await_suspend(handle h) noexcept {
+    ctx.add_readable(fd, h);
+    return true;
+}
+
+void read_ready_t::await_resume() const noexcept {}
+
+read_ready_t read_ready(io_context& ctx, int fd) {
+    return {ctx, fd};
+}
+
+bool sleep_for_t::await_ready() const noexcept {
+    return false;
+}
+
+bool sleep_for_t::await_suspend(handle h) noexcept {
+    ctx.add_timer(ms, h);
+    return true;
+}
+
+void sleep_for_t::await_resume() const noexcept {}
+
+sleep_for_t sleep_for(io_context& ctx, int ms) {
+    return {ctx, ms};
 }

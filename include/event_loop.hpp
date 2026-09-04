@@ -1,5 +1,6 @@
 #pragma once 
 
+#include <atomic>
 #include <coroutine>
 #include <cstdint>
 #include <mutex>
@@ -26,7 +27,7 @@ private:
     std::unordered_map<int, handle> handlers_; // fd -> coroutine handle
     std::vector<handle> pending_; // coroutines to resume
     std::mutex m_; // protects pending_
-    bool stop_ = false;
+    std::atomic_bool stop_{false};
     void add_fd_helper(int fd, uint32_t events); // register `fd` to be observed for `events`;
 };
 
@@ -37,7 +38,7 @@ struct read_ready_t {
     bool await_suspend(handle h) noexcept;
     void await_resume() const noexcept;
 };
-inline read_ready_t read_ready(io_context& ctx, int fd);
+read_ready_t read_ready(io_context& ctx, int fd);
 
 struct sleep_for_t {
     io_context& ctx;
@@ -46,4 +47,4 @@ struct sleep_for_t {
     bool await_suspend(handle h) noexcept;
     void await_resume() const noexcept;
 };
-inline sleep_for_t sleep_for(io_context& ctx, int ms);
+sleep_for_t sleep_for(io_context& ctx, int ms);

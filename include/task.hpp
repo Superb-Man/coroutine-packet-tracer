@@ -85,3 +85,5 @@ private:
 
     handle_type h_{};
 };
+
+#include "../src/task.tpp"

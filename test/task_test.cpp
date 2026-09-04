@@ -1,4 +1,4 @@
-#include "../src/task.cpp"
+#include "../include/task.hpp"
 
 #include <cstdlib>
 #include <iostream>

@@ -1,4 +1,4 @@
-#include "../include/task.hpp"
+#pragma once
 
 // final_awaiter
 
@@ -103,7 +103,9 @@ void task<T>::await_suspend(handle waiter) noexcept {
 
 template <typename T>
 T task<T>::await_resume() {
-    if (h_.promise().ex_) std::rethrow_exception(h_.promise().ex_);
+    if (h_.promise().ex_) {
+        std::rethrow_exception(h_.promise().ex_);
+    }
     return std::move(*h_.promise().val_);
 }
 
@@ -130,8 +132,8 @@ inline void task<void>::promise_type::unhandled_exception() {
 
 inline void task<void>::promise_type::return_void() noexcept {}
 
-inline task<void>::task(handle_type h) noexcept { 
-    h_ = h; 
+inline task<void>::task(handle_type h) noexcept {
+    h_ = h;
 }
 
 inline task<void>::~task() {
